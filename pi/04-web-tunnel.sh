@@ -24,8 +24,9 @@ source "$HERE/common.sh"
 
 SITE_SRC="${1:-}"
 DOMAIN="${2:-}"
-[ -n "$SITE_SRC" ] && [ -n "$DOMAIN" ] && [ "${SITE_SRC#--}" = "$SITE_SRC" ] && [ "${DOMAIN#--}" = "$DOMAIN" ] \
-  || fail "Usage: sudo $0 <site-folder> <your-domain> [--apply]"
+if [ -z "$SITE_SRC" ] || [ -z "$DOMAIN" ] || [ "${SITE_SRC#--}" != "$SITE_SRC" ] || [ "${DOMAIN#--}" != "$DOMAIN" ]; then
+  fail "Usage: sudo $0 <site-folder> <your-domain> [--apply]"
+fi
 
 mode_banner
 require_root_for_apply

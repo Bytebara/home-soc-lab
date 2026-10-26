@@ -17,7 +17,9 @@ source "$HERE/common.sh"
 
 PKG="${1:-}"
 SERVER="${2:-}"
-[ -n "$PKG" ] && [ -n "$SERVER" ] && [ "${PKG#--}" = "$PKG" ] && [ "${SERVER#--}" = "$SERVER" ] || fail "Usage: sudo $0 <forwarder .deb or .tgz> <ubuntu-pc-ip> [--apply]"
+if [ -z "$PKG" ] || [ -z "$SERVER" ] || [ "${PKG#--}" != "$PKG" ] || [ "${SERVER#--}" != "$SERVER" ]; then
+  fail "Usage: sudo $0 <forwarder .deb or .tgz> <ubuntu-pc-ip> [--apply]"
+fi
 
 mode_banner
 require_root_for_apply
