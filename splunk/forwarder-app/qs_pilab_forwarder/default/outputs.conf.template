@@ -1,0 +1,8 @@
+# Quiet Signal lab: where the Pi sends its logs.
+# 03-splunk-forwarder.sh replaces the placeholder below with your Ubuntu PC address.
+
+[tcpout]
+defaultGroup = ubuntu_splunk
+
+[tcpout:ubuntu_splunk]
+server = SPLUNK_SERVER:9997
