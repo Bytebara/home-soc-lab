@@ -1,0 +1,50 @@
+# Quiet Signal lab: Caddy web server on the Raspberry Pi (Phase 5).
+# Written by 04-web-tunnel.sh to /etc/caddy/Caddyfile.
+#
+# Caddy only listens on 127.0.0.1:8081 (this Pi itself; 8080 is taken by CrowdSec). The public reaches it through
+# Cloudflare Tunnel, which connects out from the Pi, so no router ports are opened.
+# Cloudflare handles HTTPS, so Caddy serves plain HTTP on the loopback address only.
+
+{
+	# No automatic HTTPS: Cloudflare terminates TLS in front of the tunnel.
+	auto_https off
+}
+
+# Security headers, applied to normal pages and to error pages alike.
+(security_headers) {
+	header {
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		-Server
+	}
+}
+
+http://:8081 {
+	bind 127.0.0.1
+
+	root * /var/www/quiet-signal
+	encode gzip
+	file_server
+
+	import security_headers
+
+	handle_errors {
+		import security_headers
+		rewrite * /404.html
+		file_server
+	}
+
+	# JSON access log. Request headers are included, so Splunk can read the visitor's
+	# real address from Cf-Connecting-Ip (every request reaches Caddy from the tunnel).
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 50MiB
+			roll_keep 5
+		}
+		format json
+	}
+}
