@@ -11,11 +11,12 @@ flowchart LR
     remote[Phone, anywhere] -->|Tailscale| pi
     subgraph pi[Raspberry Pi 5]
         caddy[Caddy]
-        crowdsec[CrowdSec + nftables bouncer]
-        pihole[Pi-hole + Unbound, DNS over TLS]
+        crowdsec[CrowdSec]
+        pihole[Pi-hole]
+        unbound[Unbound]
         ufw[ufw]
     end
-    pi -->|Universal Forwarder, port 9997| splunk[(Splunk, Ubuntu PC)]
+    pi -->|Forwarder :9997| splunk[(Splunk)]
 ```
 
 **What's covered:** SSH hardening and firewall, CrowdSec, the Splunk forwarder with least-privilege log access, a website behind Cloudflare Tunnel with security headers, Pi-hole with DNS logs in Splunk, encrypted upstream DNS, and Tailscale remote access. The Splunk app has field extractions, saved searches and a dashboard; the tests check every extraction against sample log lines and the scripts with ShellCheck.
