@@ -1,0 +1,187 @@
+<dashboard version="1.1" theme="dark">
+  <label>Pi lab overview</label>
+  <description>Raspberry Pi sensor: SSH activity, CrowdSec detections, firewall blocks, DNS filtering and log health. Index: pilab.</description>
+
+  <fieldset submitButton="false">
+    <input type="time" token="range">
+      <label>Time range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <title>Events received</title>
+      <single>
+        <search>
+          <query>index=pilab | stats count</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+        <option name="underLabel">from the Pi in this time range</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Minutes since last event</title>
+      <single>
+        <search>
+          <query>| tstats latest(_time) AS last WHERE index=pilab | eval minutes = round((now() - last) / 60) | fields minutes</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="underLabel">over 30 means the forwarder may be down</option>
+        <option name="rangeValues">[5,30]</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>CrowdSec bans</title>
+      <single>
+        <search>
+          <query>index=pilab sourcetype=crowdsec "performed" | stats count</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+      </single>
+    </panel>
+    <panel>
+      <title>Firewall blocks</title>
+      <single>
+        <search>
+          <query>index=pilab sourcetype=ufw ufw_action="BLOCK" | stats count</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Events by log source over time</title>
+      <chart>
+        <search>
+          <query>index=pilab | timechart count BY sourcetype</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>SSH failed and invalid logins by source</title>
+      <table>
+        <search>
+          <query>index=pilab sourcetype=linux_secure ("Invalid user" OR "Failed password" OR "Connection closed by authenticating user" OR "Disconnected from authenticating user") | stats count AS attempts, values(attempted_user) AS usernames_tried BY src_ip | sort - attempts | head 20</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <title>CrowdSec bans by attack type</title>
+      <chart>
+        <search>
+          <query>index=pilab sourcetype=crowdsec "performed" | stats count BY scenario | sort - count</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Firewall blocks by protocol and port</title>
+      <chart>
+        <search>
+          <query>index=pilab sourcetype=ufw ufw_action="BLOCK" | fillnull value="no port" DPT | eval target=PROTO." ".DPT | stats count BY target | sort - count | head 15</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Successful SSH logins</title>
+      <table>
+        <search>
+          <query>index=pilab sourcetype=linux_secure "Accepted" | table _time user auth_method src_ip | sort - _time</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>sudo commands</title>
+      <table>
+        <search>
+          <query>index=pilab sourcetype=linux_secure "COMMAND=" | table _time sudo_user sudo_command | sort - _time</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>DNS lookups (Pi-hole)</title>
+      <single>
+        <search>
+          <query>index=pilab sourcetype=pihole dns_query=* | stats count</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+        <option name="underLabel">from devices using the Pi for DNS</option>
+      </single>
+    </panel>
+    <panel>
+      <title>DNS lookups blocked</title>
+      <single>
+        <search>
+          <query>index=pilab sourcetype=pihole dns_block_reason=* | stats count</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+        <option name="underLabel">ads, trackers and bad domains</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Top blocked domains</title>
+      <table>
+        <search>
+          <query>index=pilab sourcetype=pihole dns_block_reason=* | stats count AS blocks BY dns_blocked_domain | sort - blocks | head 15</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <title>DNS lookups by device</title>
+      <table>
+        <search>
+          <query>index=pilab sourcetype=pihole (dns_query=* OR dns_block_reason=*) | reverse | eval domain=coalesce(dns_query, dns_blocked_domain) | streamstats last(dns_client) AS asked_by BY domain | fillnull value="unknown" asked_by | eval kind=if(isnotnull(dns_block_reason), "blocked", "query") | stats count(eval(kind="query")) AS lookups, count(eval(kind="blocked")) AS blocked BY asked_by | rename asked_by AS dns_client | sort - lookups</query>
+          <earliest>$range.earliest$</earliest>
+          <latest>$range.latest$</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+</dashboard>
