@@ -21,7 +21,9 @@ source "$HERE/../pi/common.sh"
 
 PKG="${1:-}"
 PI_IP="${2:-}"
-[ -n "$PKG" ] && [ -n "$PI_IP" ] && [ "${PKG#--}" = "$PKG" ] && [ "${PI_IP#--}" = "$PI_IP" ] || fail "Usage: sudo $0 <splunk .deb | installed> <pi-ip | later> [--apply]"
+if [ -z "$PKG" ] || [ -z "$PI_IP" ] || [ "${PKG#--}" != "$PKG" ] || [ "${PI_IP#--}" != "$PI_IP" ]; then
+  fail "Usage: sudo $0 <splunk .deb | installed> <pi-ip | later> [--apply]"
+fi
 
 mode_banner
 require_root_for_apply
