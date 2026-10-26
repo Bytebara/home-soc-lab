@@ -67,4 +67,4 @@ Then work through the scripts in order. Addresses in examples are private home-n
 
 ---
 
-Part of my portfolio at [bytebara.info](https://bytebara.info). Developed with AI assistance; reviewed, run and debugged on my own hardware. [MIT licensed](LICENSE).
+Part of my portfolio at [bytebara.info](https://bytebara.info). Run and debugged on my own hardware. [MIT licensed](LICENSE).
