@@ -59,7 +59,7 @@ check_port() {
   else
     fail "Port $port is already in use by another program:
    $listener
-   Pi-hole can't share it. Tell Claude which program it is."
+   Pi-hole can't share it. Find out which program it is before going on:  sudo ss -ltnup"
   fi
 }
 
@@ -169,7 +169,7 @@ if [ "$MODE" = "apply" ]; then
   sleep 5
   systemctl is-active --quiet pihole-FTL || fail "Pi-hole didn't start. See: sudo journalctl -u pihole-FTL -n 30"
   GOT_PORT="$(pihole-FTL --config webserver.port 2>/dev/null || true)"
-  if [ "$GOT_PORT" = "$WEB_PORT" ]; then ok "dashboard port is $WEB_PORT"; else fail "Dashboard port reads back as '$GOT_PORT', not $WEB_PORT. Tell Claude."; fi
+  if [ "$GOT_PORT" = "$WEB_PORT" ]; then ok "dashboard port is $WEB_PORT"; else fail "Dashboard port reads back as '$GOT_PORT', not $WEB_PORT. Check: sudo pihole-FTL --config webserver.port"; fi
   GOT_DHCP="$(pihole-FTL --config dhcp.active 2>/dev/null || true)"
   if [ "$GOT_DHCP" = "false" ]; then ok "DHCP is off"; else fail "Pi-hole's DHCP reads back as '$GOT_DHCP'. Turn it off before anything else: sudo pihole-FTL --config dhcp.active false"; fi
   ok "Pi-hole is running"
@@ -210,7 +210,7 @@ if [ "$MODE" = "apply" ]; then
   if curl -fsS -o /dev/null "http://127.0.0.1:$WEB_PORT/admin/"; then ok "dashboard answers on port $WEB_PORT"; else warn "dashboard didn't answer on port $WEB_PORT. See: sudo journalctl -u pihole-FTL -n 30"; fi
   for p in 80 443; do
     if grep -q '"pihole-FTL"' <<<"$(ss -Hltnp "sport = :$p" 2>/dev/null || true)"; then
-      warn "Pi-hole is also listening on port $p (only $WEB_PORT was asked for). Tell Claude."
+      warn "Pi-hole is also listening on port $p (only $WEB_PORT was asked for). Check: sudo pihole-FTL --config webserver.port"
     fi
   done
   for svc in crowdsec caddy cloudflared SplunkForwarder; do

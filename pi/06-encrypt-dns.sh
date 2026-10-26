@@ -47,7 +47,7 @@ elif [ "$(id -u)" -ne 0 ]; then
 else
   fail "Port $DOT_PORT is already in use by another program:
    $LISTENER
-   Tell Claude which program it is."
+   Find out which program it is before going on:  sudo ss -ltnup"
 fi
 IFACE="$(ip route show default 2>/dev/null | awk '/default/ {print $5; exit}')"
 PI_IP="$(ip -o -f inet addr show "$IFACE" 2>/dev/null | awk '{print $4; exit}')"
@@ -139,7 +139,7 @@ if [ "$MODE" = "apply" ]; then
   else
     warn "Pi-hole couldn't look things up through Unbound. Switching back to plain Quad9."
     pihole-FTL --config dns.upstreams "$PLAIN_UPSTREAM" >/dev/null
-    fail "Switched back; DNS works as before. Tell Claude and paste: sudo journalctl -u unbound -n 30"
+    fail "Switched back; DNS works as before. See why with:  sudo journalctl -u unbound -n 30"
   fi
   BLOCKED="$(dig +short +time=5 +tries=2 @"$PI_IP" doubleclick.net A 2>/dev/null | tail -1 || true)"
   if [ "$BLOCKED" = "0.0.0.0" ]; then ok "ad blocking still works (doubleclick.net -> 0.0.0.0)"; else warn "doubleclick.net gave '$BLOCKED', expected 0.0.0.0"; fi
@@ -153,7 +153,7 @@ if [ "$MODE" = "apply" ]; then
   case "$PROTO" in
     dot) ok "Quad9 says it received the lookup over DNS over TLS (\"dot\")" ;;
     "")  warn "Quad9's protocol check didn't answer; the connection check below still applies" ;;
-    *)   warn "Quad9 says it received the lookup as \"$PROTO\", not \"dot\". Tell Claude." ;;
+    *)   warn "Quad9 says it received the lookup as \"$PROTO\", not \"dot\". Check: sudo journalctl -u unbound -n 30" ;;
   esac
   CONNS="$(ss -Htnp state established '( dport = :853 )' 2>/dev/null || true)"
   if grep -q '"unbound"' <<<"$CONNS"; then

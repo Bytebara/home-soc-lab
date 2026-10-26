@@ -66,7 +66,7 @@ if [ "$MODE" = "apply" ]; then
     warn "No answer on $TS_IP. Going back to LOCAL mode."
     pihole-FTL --config dns.listeningMode LOCAL >/dev/null
     rm -f "$MARKER"
-    fail "Switched back; nothing else changed. Tell Claude and paste: sudo journalctl -u pihole-FTL -n 30"
+    fail "Switched back; nothing else changed. See why with:  sudo journalctl -u pihole-FTL -n 30"
   fi
   BLOCKED="$(dig +short +time=5 +tries=2 @"$TS_IP" doubleclick.net A 2>/dev/null | tail -1 || true)"
   if [ "$BLOCKED" = "0.0.0.0" ]; then ok "ad blocking works there too (doubleclick.net -> 0.0.0.0)"; else warn "doubleclick.net gave '$BLOCKED', expected 0.0.0.0"; fi

@@ -56,7 +56,7 @@ elif [ "$MODE" = "apply" ]; then
     env DEBIAN_FRONTEND=noninteractive apt-get -y install curl ca-certificates
   fi
   if ! curl -fsSL "$KEY_URL" -o /usr/share/keyrings/tailscale-archive-keyring.gpg; then
-    fail "Couldn't download $KEY_URL (no internet, or no Tailscale repository for $DISTRO '$CODENAME'). Tell Claude; nothing was changed."
+    fail "Couldn't download $KEY_URL (no internet, or no Tailscale repository for $DISTRO '$CODENAME'). Nothing was changed."
   fi
   ok "saved Tailscale's signing key"
   curl -fsSL "$LIST_URL" -o /etc/apt/sources.list.d/tailscale.list

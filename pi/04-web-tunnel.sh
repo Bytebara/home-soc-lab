@@ -72,7 +72,7 @@ elif [ "$(id -u)" -ne 0 ]; then
 else
   fail "Port $WEB_PORT is already in use by another program:
    $LISTENER
-   Caddy can't share it. Tell Claude which program it is."
+   Caddy can't share it. Find out which program it is before going on:  sudo ss -ltnup"
 fi
 run env DEBIAN_FRONTEND=noninteractive apt-get -y install caddy
 run mkdir -p "$WEB_ROOT" /var/log/caddy
