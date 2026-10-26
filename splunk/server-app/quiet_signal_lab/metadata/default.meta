@@ -1,0 +1,4 @@
+# Make the app's searches, dashboard and field extractions available across Splunk.
+[]
+access = read : [ * ], write : [ admin ]
+export = system
